@@ -1,0 +1,103 @@
+#Versão do docker-compose
+version: "3.7"
+
+#As redes definem as regras de comunicação entre contêineres e entre um contêiner e o host
+networks:
+    app-network:
+        driver: bridge
+
+#Serviços referem-se à configuração de cada container(Imagem)
+services:
+    app:
+        #Constroi uma imagem a partir do código-fonte lendo o meu Dockerfile
+        build: 
+            context: ./
+            dockerfile: Dockerfile
+        #Puxa a imagem original ou a pretendida do DockerHub
+        image: ${php_image}
+        container_name: app
+        #Configurado para sempre reiniciar
+        restart: unless-stopped
+        tty: true
+        working_dir: /var/www
+        #Puxamos as nossas variaveis ambiente
+        env_file: .env
+        #Volume é um diretório compartilhado no host
+        volumes: 
+            - ./src:/var/www
+        #As zonas de rede comuns tornarão os serviços dos contêineres detectáveis ​​uns pelos outros
+        networks: 
+            - app-network
+    
+    mysql:
+        image: ${DB_image}
+        #Definimos variáveis ​​de ambiente estáticas e também definir variáveis ​​dinâmicas com a notação ${}
+        environment:
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+            MYSQL_USER: ${DB_USERNAME}
+            SERVICE_TAGS: dev
+            SERVICE_NAME: ${DB_CONNECTION}
+        volumes: 
+            - ./mysql/data:/var/lib/mysql
+        networks:
+            - app-network
+    
+    nginx:
+        image: ${nginx_image}
+        container_name: nginx
+        #Configurado para sempre reiniciar
+        restart: unless-stopped
+        #Terminal de conecção entreo utilizador com o fluxo stdin e stdout (TeleTYpewriter)
+        #E serve para manter o container a correr
+        tty: true
+        ports: 
+            - 80:80
+        volumes: 
+            - ./src:/var/www
+            - ./nginx/conf:/etc/nginx/conf.d
+        networks: 
+            - app-network
+
+    redis:
+        image: ${redis_image}
+        container_name: redis
+        restart: unless-stopped
+        tty: true
+        volumes: 
+            - ./redis/data:/data
+        networks: 
+            - app-network
+          
+    phpmyadmin:
+        image: ${phpmyadmin_image}
+        container_name: phpmyadmin
+        restart: unless-stopped
+        #O container está exposto na porta 8200 e na porta 80 do host
+        ports: 
+            - 8200:80
+        environment:
+            PMA_HOST: ${PMA_HOST}
+            PMA_PORT: ${PMA_PORT}
+            PMA_USER: ${PMA_USER}
+            PMA_PASSWORD: ${PMA_PASSWORD}
+        networks:
+            - app-network
+        
+    postgres:
+        image: ${postgres_image}
+        container_name: postgres
+        restart: unless-stopped
+        #O container está exposto na porta 8080 e na porta 8080 do host
+        ports:
+            - 8080:8080
+        environment:
+            POSTGRES_USER: ${POSTGRES_USER}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+            POSTGRES_DB: ${POSTGRES_DB}
+        volumes:
+            - ./postgres/dbdata/:/var/lib/postgresql/data/
+        networks: 
+            - app-network  
+        
