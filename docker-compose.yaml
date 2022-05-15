@@ -91,7 +91,7 @@ services:
         restart: unless-stopped
         #O container está exposto na porta 8080 e na porta 8080 do host
         ports:
-            - 8080:8080
+            - 5432
         environment:
             POSTGRES_USER: ${POSTGRES_USER}
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
