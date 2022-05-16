@@ -29,6 +29,7 @@ services:
         networks: 
             - app-network
     
+    #Base de dados
     mysql:
         image: ${DB_image}
         #Definimos variáveis ​​de ambiente estáticas e também definir variáveis ​​dinâmicas com a notação ${}
@@ -69,7 +70,9 @@ services:
             - ./redis/data:/data
         networks: 
             - app-network
-          
+
+
+    #Gestor de Base de dados (Oferece uma interface para gerir a base de dados)     
     phpmyadmin:
         image: ${phpmyadmin_image}
         container_name: phpmyadmin
@@ -84,7 +87,9 @@ services:
             PMA_PASSWORD: ${PMA_PASSWORD}
         networks:
             - app-network
-        
+
+
+    #Base de dados  
     postgres:
         image: ${postgres_image}
         container_name: postgres
